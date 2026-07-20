@@ -8,18 +8,22 @@ import {
   deleteTaskController,
   getMyTasksController,
   updateTaskStatusController,
+  restoreTaskController,
+  getDeletedTasksController,
 } from "../controllers/task.controller.js";
 
 import authMiddleware from "../middlewares/auth.middleware.js";
 import roleMiddleware from "../middlewares/role.middleware.js";
 import validationMiddleware from "../middlewares/validation.middleware.js";
 
-import {
+ import {
   createTaskSchema,
   updateTaskSchema,
   updateTaskStatusSchema,
+  getTasksQuerySchema,
 } from "../validations/task.validation.js";
 
+ 
 import { ROLES } from "../constants/roles.js";
 
 const router = Router();
@@ -34,13 +38,13 @@ router.post(
   createTaskController
 );
 
-router.get(
+ router.get(
   "/",
   authMiddleware,
   roleMiddleware(ROLES.ADMIN),
+  validationMiddleware(getTasksQuerySchema, "query"),
   getAllTasksController
 );
-
 router.put(
   "/:id",
   authMiddleware,
@@ -54,6 +58,20 @@ router.delete(
   authMiddleware,
   roleMiddleware(ROLES.ADMIN),
   deleteTaskController
+);
+
+router.patch(
+  "/:id/restore",
+  authMiddleware,
+  roleMiddleware(ROLES.ADMIN),
+  restoreTaskController
+);
+
+router.get(
+  "/deleted",
+  authMiddleware,
+  roleMiddleware(ROLES.ADMIN),
+  getDeletedTasksController
 );
 
 /* ---------- Student Routes ---------- */

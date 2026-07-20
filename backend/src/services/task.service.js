@@ -1,7 +1,6 @@
- import { Task, User } from "../models/index.js";
-
+   import { Op } from "sequelize";
+import { Task, User } from "../models/index.js";
 import ApiError from "../utils/ApiError.js";
-
 import { ROLES } from "../constants/roles.js";
 import { TASK_STATUS } from "../constants/taskStatus.js";
 
@@ -41,8 +40,69 @@ export const createTask = async (taskData, adminId) => {
   return task;
 };
 
-export const getAllTasks = async () => {
-  return await Task.findAll({
+export const getAllTasks = async (
+  page = 1,
+  limit = 10,
+  search = "",
+  status = "",
+  priority = "",
+  sortBy = "createdAt",
+  order = "DESC"
+) => {
+  const offset = (page - 1) * limit;
+
+  const where = {};
+
+  // Search
+  if (search) {
+    where[Op.or] = [
+      {
+        title: {
+          [Op.iLike]: `%${search}%`,
+        },
+      },
+      {
+        description: {
+          [Op.iLike]: `%${search}%`,
+        },
+      },
+    ];
+  }
+
+  // Filter by Status
+  if (status) {
+    where.status = status;
+  }
+
+  // Filter by Priority
+  if (priority) {
+    where.priority = priority;
+  }
+
+  // Allowed Sort Fields
+  const allowedSortFields = [
+    "createdAt",
+    "updatedAt",
+    "dueDate",
+    "priority",
+    "status",
+    "title",
+  ];
+
+  if (!allowedSortFields.includes(sortBy)) {
+    sortBy = "createdAt";
+  }
+
+  order = order.toUpperCase();
+
+  if (!["ASC", "DESC"].includes(order)) {
+    order = "DESC";
+  }
+
+  const { count, rows } = await Task.findAndCountAll({
+    where,
+    limit,
+    offset,
     include: [
       {
         model: User,
@@ -55,8 +115,16 @@ export const getAllTasks = async () => {
         attributes: ["id", "name", "email"],
       },
     ],
-    order: [["createdAt", "DESC"]],
+    order: [[sortBy, order]],
   });
+
+  return {
+    totalTasks: count,
+    currentPage: page,
+    totalPages: Math.ceil(count / limit),
+    limit,
+    tasks: rows,
+  };
 };
 
 export const getTaskById = async (taskId) => {
@@ -81,6 +149,7 @@ export const getTaskById = async (taskId) => {
 
   return task;
 };
+
 export const deleteTask = async (taskId) => {
   const task = await Task.findByPk(taskId);
 
@@ -124,6 +193,7 @@ export const updateTaskStatus = async (
 
   return task;
 };
+
 export const updateTask = async (
   taskId,
   updateData
@@ -137,4 +207,29 @@ export const updateTask = async (
   await task.update(updateData);
 
   return task;
+};
+
+export const restoreTask = async (taskId) => {
+  const task = await Task.findByPk(taskId, {
+    paranoid: false,
+  });
+
+  if (!task) {
+    throw new ApiError(404, "Task not found");
+  }
+
+  await task.restore();
+
+  return task;
+};
+
+export const getDeletedTasks = async () => {
+  return await Task.findAll({
+    paranoid: false,
+    where: {
+      deletedAt: {
+        [Op.ne]: null,
+      },
+    },
+  });
 };

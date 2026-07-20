@@ -22,8 +22,26 @@ export const createTaskController = asyncHandler(async (req, res) => {
     )
   );
 });
-export const getAllTasksController = asyncHandler(async (req, res) => {
-  const tasks = await getAllTasks();
+  export const getAllTasksController = asyncHandler(async (req, res) => {
+  const page = Number(req.query.page) || 1;
+  const limit = Number(req.query.limit) || 10;
+
+  const search = req.query.search || "";
+  const status = req.query.status || "";
+  const priority = req.query.priority || "";
+
+  const sortBy = req.query.sortBy || "createdAt";
+  const order = req.query.order || "DESC";
+
+  const tasks = await getAllTasks(
+    page,
+    limit,
+    search,
+    status,
+    priority,
+    sortBy,
+    order
+  );
 
   return res.status(200).json(
     new ApiResponse(
@@ -33,7 +51,6 @@ export const getAllTasksController = asyncHandler(async (req, res) => {
     )
   );
 });
-
 export const getTaskByIdController = asyncHandler(async (req, res) => {
   const task = await getTaskById(req.params.id);
 
@@ -99,3 +116,31 @@ export const updateTaskStatusController = asyncHandler(async (req, res) => {
     )
   );
 });
+
+export const restoreTaskController = asyncHandler(
+  async (req, res) => {
+    const task = await restoreTask(req.params.id);
+
+    return res.status(200).json(
+      new ApiResponse(
+        200,
+        "Task restored successfully",
+        task
+      )
+    );
+  }
+);
+
+export const getDeletedTasksController = asyncHandler(
+  async (req, res) => {
+    const tasks = await getDeletedTasks();
+
+    return res.status(200).json(
+      new ApiResponse(
+        200,
+        "Deleted tasks fetched successfully",
+        tasks
+      )
+    );
+  }
+);

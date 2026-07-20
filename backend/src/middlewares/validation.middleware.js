@@ -1,23 +1,27 @@
-//   const validationMiddleware = (req, res, next) => {
-//   next();
-// };
+  import ApiError from "../utils/ApiError.js";
 
-// export default validationMiddleware;
-
-import ApiError from "../utils/ApiError.js";
-
-const validationMiddleware = (schema) => {
+const validationMiddleware = (
+  schema,
+  property = "body"
+) => {
   return (req, res, next) => {
-    const { error } = schema.validate(req.body, {
-      abortEarly: false,
-      stripUnknown: true,
-    });
+    const { error, value } = schema.validate(
+      req[property],
+      {
+        abortEarly: false,
+        stripUnknown: true,
+      }
+    );
 
     if (error) {
-      const errors = error.details.map((err) => err.message);
+      const message = error.details
+        .map((detail) => detail.message)
+        .join(", ");
 
-      return next(new ApiError(400, errors.join(", ")));
+      return next(new ApiError(400, message));
     }
+
+    req[property] = value;
 
     next();
   };
