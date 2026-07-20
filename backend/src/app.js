@@ -2,13 +2,17 @@
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
-
+ import {
+  swaggerUi,
+  swaggerSpec,
+} from "./config/swagger.js";
 import routes from "./routes/index.js";
-
 import notFoundMiddleware from "./middlewares/notFound.middleware.js";
 import errorMiddleware from "./middlewares/error.middleware.js";
 
 const app = express();
+
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use(helmet());
 app.use(cors());
