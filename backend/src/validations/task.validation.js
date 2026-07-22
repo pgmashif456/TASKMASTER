@@ -14,13 +14,15 @@ export const createTaskSchema = Joi.object({
     .trim()
     .allow("", null),
 
-  priority: Joi.string()
-    .valid(...Object.values(TASK_PRIORITY))
-    .default(TASK_PRIORITY.MEDIUM),
+   status: Joi.string()
+  .valid(...Object.values(TASK_STATUS))
+  .allow("")
+  .optional(),
 
-  status: Joi.string()
-    .valid(...Object.values(TASK_STATUS))
-    .default(TASK_STATUS.PENDING),
+priority: Joi.string()
+  .valid(...Object.values(TASK_PRIORITY))
+  .allow("")
+  .optional(),
 
   dueDate: Joi.date().required(),
 

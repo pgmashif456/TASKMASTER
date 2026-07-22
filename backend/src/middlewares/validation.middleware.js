@@ -1,17 +1,14 @@
-  import ApiError from "../utils/ApiError.js";
+   import ApiError from "../utils/ApiError.js";
 
 const validationMiddleware = (
   schema,
   property = "body"
 ) => {
   return (req, res, next) => {
-    const { error, value } = schema.validate(
-      req[property],
-      {
-        abortEarly: false,
-        stripUnknown: true,
-      }
-    );
+    const { error, value } = schema.validate(req[property], {
+      abortEarly: false,
+      stripUnknown: true,
+    });
 
     if (error) {
       const message = error.details
@@ -21,7 +18,14 @@ const validationMiddleware = (
       return next(new ApiError(400, message));
     }
 
-    req[property] = value;
+    // Express 5 compatibility
+    if (property === "query") {
+      Object.assign(req.query, value);
+    } else if (property === "params") {
+      Object.assign(req.params, value);
+    } else {
+      req.body = value;
+    }
 
     next();
   };

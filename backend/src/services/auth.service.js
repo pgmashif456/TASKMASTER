@@ -4,10 +4,9 @@ import hashPassword from "../utils/hashPassword.js";
 import comparePassword from "../utils/comparePassword.js";
 import generateToken from "../utils/generateToken.js";
  //**---------------------register user----------------------- */
-export const registerUser = async (userData) => {
-  const { name, email, password } = userData;
+ export const registerUser = async (userData) => {
+  const { name, email, password, role } = userData;
 
-  // Check if email already exists
   const existingUser = await User.findOne({
     where: { email },
   });
@@ -16,33 +15,27 @@ export const registerUser = async (userData) => {
     throw new ApiError(409, "Email already registered");
   }
 
-  // Hash Password
   const hashedPassword = await hashPassword(password);
 
-  // Create User
   const user = await User.create({
     name,
     email,
     password: hashedPassword,
+    role,
   });
 
-  // Generate JWT
   const token = generateToken(user);
-
-  // Remove password from response
-  const userResponse = {
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-  };
 
   return {
     token,
-    user: userResponse,
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    },
   };
 };
-
 //**---------------------login user----------------------- */
 export const loginUser = async (loginData) => {
   const { email, password } = loginData;

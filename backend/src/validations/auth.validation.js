@@ -1,4 +1,5 @@
-  import Joi from "joi";
+   import Joi from "joi";
+import { ROLES } from "../constants/roles.js";
 
 // ================= Register Validation =================
 
@@ -42,6 +43,14 @@ export const registerSchema = Joi.object({
     .messages({
       "any.only": "Passwords do not match",
       "any.required": "Confirm Password is required",
+    }),
+
+  role: Joi.string()
+    .valid(...Object.values(ROLES))
+    .required()
+    .messages({
+      "any.only": `Role must be one of: ${Object.values(ROLES).join(", ")}`,
+      "any.required": "Role is required",
     }),
 });
 

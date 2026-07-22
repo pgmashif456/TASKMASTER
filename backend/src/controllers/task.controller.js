@@ -1,4 +1,4 @@
- import asyncHandler from "../utils/asyncHandler.js";
+   import asyncHandler from "../utils/asyncHandler.js";
 import ApiResponse from "../utils/ApiResponse.js";
 
 import {
@@ -9,8 +9,9 @@ import {
   deleteTask,
   getMyTasks,
   updateTaskStatus,
+  restoreTask,
+  getDeletedTasks,
 } from "../services/task.service.js";
-
 export const createTaskController = asyncHandler(async (req, res) => {
   const task = await createTask(req.body, req.user.id);
 
