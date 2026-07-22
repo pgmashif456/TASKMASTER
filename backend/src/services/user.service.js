@@ -1,4 +1,6 @@
- export const getStudents = async () => {
+  import { User } from "../models/index.js";
+
+export const getStudents = async () => {
   return await User.findAll({
     where: {
       role: "STUDENT",

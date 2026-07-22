@@ -3,26 +3,21 @@
 import { User } from "../models/index.js";
 import ApiError from "../utils/ApiError.js";
 
+// ============================
+// Authentication Middleware
+// ============================
 const authMiddleware = async (req, res, next) => {
   try {
-    // Authorization Header
     const authHeader = req.headers.authorization;
 
-    // Check Token Exists
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return next(new ApiError(401, "Access token is required"));
     }
 
-    // Extract Token
     const token = authHeader.split(" ")[1];
 
-    // Verify Token
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET
-    );
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Find User
     const user = await User.findByPk(decoded.id, {
       attributes: {
         exclude: ["password"],
@@ -33,7 +28,6 @@ const authMiddleware = async (req, res, next) => {
       return next(new ApiError(401, "User not found"));
     }
 
-    // Attach User
     req.user = user;
 
     next();
@@ -48,6 +42,23 @@ const authMiddleware = async (req, res, next) => {
 
     next(error);
   }
+};
+
+// ============================
+// Role Authorization Middleware
+// ============================
+export const authorize = (...roles) => {
+  return (req, res, next) => {
+    if (!req.user) {
+      return next(new ApiError(401, "Unauthorized"));
+    }
+
+    if (!roles.includes(req.user.role)) {
+      return next(new ApiError(403, "Access denied"));
+    }
+
+    next();
+  };
 };
 
 export default authMiddleware;
